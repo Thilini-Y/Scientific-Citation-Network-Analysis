@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Forwards `hdfs ...` to the namenode container (see docker-compose.yml).
+# Host paths under <repo>/dataset are rewritten to /dataset, where it is mounted.
+set -euo pipefail
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+args=()
+for a in "$@"; do
+  args+=("${a/#$REPO\/dataset/\/dataset}")
+done
+exec docker exec -i namenode hdfs "${args[@]}"

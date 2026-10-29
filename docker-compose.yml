@@ -1,0 +1,43 @@
+# Local HDFS (single namenode + datanode) and Neo4j for the pipeline.
+# HDFS uses host networking so Spark on the host can reach the datanode directly.
+services:
+  namenode:
+    image: apache/hadoop:3.4.1
+    container_name: namenode
+    network_mode: host
+    user: root
+    command: ["hdfs", "namenode"]
+    env_file: docker/hadoop.env
+    environment:
+      ENSURE_NAMENODE_DIR: /hadoop/dfs/name
+    volumes:
+      - hdfs_name:/hadoop/dfs
+      - ./dataset:/dataset:ro
+
+  datanode:
+    image: apache/hadoop:3.4.1
+    container_name: datanode
+    network_mode: host
+    user: root
+    command: ["hdfs", "datanode"]
+    env_file: docker/hadoop.env
+    volumes:
+      - hdfs_data:/hadoop/dfs
+    depends_on:
+      - namenode
+
+  neo4j:
+    image: neo4j:5
+    container_name: neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: neo4j/test1234
+    volumes:
+      - neo4j_data:/data
+
+volumes:
+  hdfs_name:
+  hdfs_data:
+  neo4j_data:
